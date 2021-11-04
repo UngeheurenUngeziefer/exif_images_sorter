@@ -15,19 +15,13 @@ print(f"Found {len(all_images_list)} images overall!")
 
 for image in all_images_list:
     image_name = image[(image.rfind("\\"))+1:]
-    
-    print("#################################")
-    print(f"Image name: {image_name}")
     with open(image, 'rb') as image_file:
         tags = exifread.process_file(image_file)
 
         # we dont have EXIF date info 
         if "EXIF DateTimeOriginal" not in tags.keys():
-            print("None")
             year = "None"
             month = "None"
-            print(f"year: {year}")
-            print(f"month: {month}")
 
         # we have EXIF date info
         else:
@@ -36,26 +30,40 @@ for image in all_images_list:
                     exif_datetime_original = tags[tag]
                     year = str(exif_datetime_original)[0:4]
                     month = str(exif_datetime_original)[5:7]
-                    
-                    print(tags[tag])
-                    print(f"year: {str(exif_datetime_original)[0:4]}")
-                    print(f"month: {str(exif_datetime_original)[5:7]}")
 
+        # None year and None month
+        if year == "None" and month == "None":
+            if os.path.exists(f"{BASE_DIR}\\None"):
+                try:
+                    print(f"{image_name} - don't have EXIF date!")
+                    shutil.move(image, f"{BASE_DIR}\\None\\{image_name}")
+                except WindowsError:
+                    pass
+            elif not os.path.exists("None"):
+                os.makedirs(f"{BASE_DIR}\\None")
+                print(f"{BASE_DIR}\\None - folder created!")
+                try:
+                    print(f"{image_name} - don't have EXIF date!")
+                    shutil.move(image, f"{BASE_DIR}\\None\\{image_name}")
+                except WindowsError:
+                    pass
 
-        # None year and None month fix
-        if os.path.exists(f"{BASE_DIR}\\{year}"):
-            # move image to this folder
-            try:
-                shutil.move(image, f"{BASE_DIR}\\{year}\\{image_name}")
-            except WindowsError:
-                pass
-            # if os.path.exists(f"{year}/{month}):
+        # create folder & move photos by year/month
+        else:
+            if os.path.exists(f"{BASE_DIR}\\{year}\\{month}"):
+                try:
+                    print(f"{image_name} - sorted!")
+                    shutil.move(image, 
+                                f"{BASE_DIR}\\{year}\\{month}\\{image_name}")
+                except WindowsError:
+                    pass
 
-        elif not os.path.exists(f"{BASE_DIR}\\{year}"):
-            # create folder, then move image to this folder
-            os.makedirs(f"{BASE_DIR}\\{year}")
-            try:
-                shutil.move(image, f"{BASE_DIR}\\{year}\\{image_name}")
-            except WindowsError:
-                pass
-
+            elif not os.path.exists(f"{BASE_DIR}\\{year}\\{month}"):
+                os.makedirs(f"{BASE_DIR}\\{year}\\{month}")
+                print(f"{BASE_DIR}\\{year}\\{month} - folder created!")
+                try:
+                    print(f"{image_name} - sorted!")
+                    shutil.move(image, 
+                                f"{BASE_DIR}\\{year}\\{month}\\{image_name}")
+                except WindowsError:
+                    pass
